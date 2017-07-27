@@ -73,6 +73,7 @@ class CMRESHandler(logging.Handler):
     __DEFAULT_ES_DOC_TYPE = 'python_log'
     __DEFAULT_RAISE_ON_EXCEPTION = False
     __DEFAULT_TIMESTAMP_FIELD_NAME = "timestamp"
+    __DEFAULT_TIMEOUT = 10
 
     __LOGGING_FILTER_FIELDS = ['msecs',
                                'relativeCreated',
@@ -136,7 +137,8 @@ class CMRESHandler(logging.Handler):
                  es_doc_type=__DEFAULT_ES_DOC_TYPE,
                  es_additional_fields=__DEFAULT_ADDITIONAL_FIELDS,
                  raise_on_indexing_exceptions=__DEFAULT_RAISE_ON_EXCEPTION,
-                 default_timestamp_field_name=__DEFAULT_TIMESTAMP_FIELD_NAME):
+                 default_timestamp_field_name=__DEFAULT_TIMESTAMP_FIELD_NAME,
+                 timeout=__DEFAULT_TIMEOUT):
         """ Handler constructor
 
         :param hosts: The list of hosts that elasticsearch clients will connect. The list can be provided
@@ -192,6 +194,7 @@ class CMRESHandler(logging.Handler):
                                           'host_ip': socket.gethostbyname(socket.gethostname())})
         self.raise_on_indexing_exceptions = raise_on_indexing_exceptions
         self.default_timestamp_field_name = default_timestamp_field_name
+        self.timeout = timeout
 
         self._client = None
         self._buffer = []
@@ -294,7 +297,8 @@ class CMRESHandler(logging.Handler):
                 eshelpers.bulk(
                     client=self.__get_es_client(),
                     actions=actions,
-                    stats_only=True
+                    stats_only=True,
+                    timeout=self.timeout
                 )
             except Exception as exception:
                 if self.raise_on_indexing_exceptions:
